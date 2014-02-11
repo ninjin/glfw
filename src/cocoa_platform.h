@@ -63,6 +63,12 @@ typedef struct _GLFWwindowNS
     id              view;
     unsigned int    modifierFlags;
 
+    // The total sum of the distances the cursor has been warped
+    // while in disabled cursor mode since the last cursor motion
+    // event was processed
+    // The deltas are in the public cursor coordinate system
+    double              warpDeltaX, warpDeltaY;
+
 } _GLFWwindowNS;
 
 
