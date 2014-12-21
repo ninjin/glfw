@@ -1,4 +1,4 @@
-project(GLFW C)
+project(GLFW C CXX)
 
 cmake_minimum_required(VERSION 2.8.9)
 
@@ -50,6 +50,8 @@ elseif (GLFW_USE_MIR)
     set(GLFW_USE_EGL ON)
 endif()
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake/modules")
+
 if (GLFW_USE_EGL)
     set(GLFW_CLIENT_LIBRARY "opengl" CACHE STRING
         "The client library to use; one of opengl, glesv1 or glesv2")
@@ -64,7 +66,6 @@ if (GLFW_USE_EGL)
         message(FATAL_ERROR "Unsupported client library")
     endif()
 
-    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake/modules")
     find_package(EGL REQUIRED)
 
     if (NOT _GLFW_USE_OPENGL)
@@ -85,6 +86,8 @@ elseif (_GLFW_USE_GLESV2)
 endif()
 
 find_package(Threads REQUIRED)
+
+find_package(OVR)
 
 if (GLFW_BUILD_DOCS)
     set(DOXYGEN_SKIP_DOT TRUE)

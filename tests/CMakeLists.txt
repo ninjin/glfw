@@ -60,9 +60,25 @@ set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Windows")
 target_link_libraries(empty "${CMAKE_THREAD_LIBS_INIT}" "${RT_LIBRARY}")
 target_link_libraries(threads "${CMAKE_THREAD_LIBS_INIT}" "${RT_LIBRARY}")
 
-set(WINDOWS_BINARIES accuracy empty sharing tearing threads title windows cursoranim)
+set(WINDOWS_BINARIES accuracy cursoranim empty sharing tearing threads
+                     title windows)
 set(CONSOLE_BINARIES clipboard defaults events fsaa gamma glfwinfo
                      iconify joysticks modes peter reopen cursor)
+
+if (OVR_FOUND AND NOT GLFW_USE_EGL)
+    include_directories(rift ${OVR_INCLUDE_DIR})
+
+    add_executable(rift WIN32 MACOSX_BUNDLE rift.c)
+    target_link_libraries(rift ${OVR_LIBRARY})
+    if (WIN32)
+        target_link_libraries(rift winmm ws2_32)
+    endif()
+    set_target_properties(rift PROPERTIES
+                          MACOSX_BUNDLE_BUNDLE_NAME "Rift"
+                          LINKER_LANGUAGE CXX)
+
+    list(APPEND WINDOWS_BINARIES rift)
+endif()
 
 if (MSVC)
     # Tell MSVC to use main instead of WinMain for Windows subsystem executables
