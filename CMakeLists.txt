@@ -1,6 +1,7 @@
 project(GLFW C)
 
 cmake_minimum_required(VERSION 2.8.9)
+cmake_policy(SET CMP0042 OLD)
 
 set(GLFW_VERSION_MAJOR "3")
 set(GLFW_VERSION_MINOR "1")
@@ -503,6 +504,24 @@ endif()
 #--------------------------------------------------------------------
 # Create generated files
 #--------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
+
+if (UNIX)
+    set(GLFW_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/lib/cmake/glfw")
+else()
+    set(GLFW_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/cmake")
+endif()
+
+configure_package_config_file("${GLFW_SOURCE_DIR}/src/glfwConfig.cmake.in"
+                              "${GLFW_BINARY_DIR}/src/glfwConfig.cmake"
+                              INSTALL_DESTINATION "${GLFW_CONFIG_PATH}"
+                              PATH_VARS CMAKE_INSTALL_PREFIX
+                              NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+
+write_basic_package_version_file("${GLFW_BINARY_DIR}/src/glfwConfigVersion.cmake" 
+                                 VERSION ${GLFW_VERSION_FULL}
+                                 COMPATIBILITY SameMajorVersion)
+
 if (GLFW_BUILD_DOCS)
     configure_file("${GLFW_SOURCE_DIR}/docs/Doxyfile.in"
                    "${GLFW_BINARY_DIR}/docs/Doxyfile" @ONLY)
@@ -510,12 +529,6 @@ endif()
 
 configure_file("${GLFW_SOURCE_DIR}/src/glfw_config.h.in"
                "${GLFW_BINARY_DIR}/src/glfw_config.h" @ONLY)
-
-configure_file("${GLFW_SOURCE_DIR}/src/glfwConfig.cmake.in"
-               "${GLFW_BINARY_DIR}/src/glfwConfig.cmake" @ONLY)
-
-configure_file("${GLFW_SOURCE_DIR}/src/glfwConfigVersion.cmake.in"
-               "${GLFW_BINARY_DIR}/src/glfwConfigVersion.cmake" @ONLY)
 
 configure_file("${GLFW_SOURCE_DIR}/src/glfw3.pc.in"
                "${GLFW_BINARY_DIR}/src/glfw3.pc" @ONLY)
