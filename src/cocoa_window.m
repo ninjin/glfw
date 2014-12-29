@@ -64,30 +64,19 @@ static void centerCursor(_GLFWwindow *window)
     _glfwPlatformSetCursorPos(window, width / 2.0, height / 2.0);
 }
 
-// Get the cursor object that window uses in the specified cursor mode
-//
-static NSCursor* getModeCursor(_GLFWwindow* window)
-{
-    if (window->cursorMode == GLFW_CURSOR_NORMAL)
-    {
-        if (window->cursor)
-            return (NSCursor*) window->cursor->ns.object;
-        else
-            return [NSCursor arrowCursor];
-    }
-    else
-        return (NSCursor*) _glfw.ns.cursor;
-}
-
 // Update the cursor to match the specified cursor mode
 //
 static void updateModeCursor(_GLFWwindow* window)
 {
-    // This is required for the cursor to update if it's inside the window
-    [getModeCursor(window) set];
-
-    // This is required for the cursor to update if it's outside the window
-    [window->ns.object invalidateCursorRectsForView:window->ns.view];
+    if (window->cursorMode == GLFW_CURSOR_NORMAL)
+    {
+        if (window->cursor)
+            [(NSCursor*) window->cursor->ns.object set];
+        else
+            [[NSCursor arrowCursor] set];
+    }
+    else
+        [(NSCursor*) _glfw.ns.cursor set];
 }
 
 // Enter fullscreen mode
@@ -473,10 +462,11 @@ static int translateKey(unsigned int key)
         [trackingArea release];
     }
 
-    NSTrackingAreaOptions options = NSTrackingMouseEnteredAndExited |
-                                    NSTrackingActiveInKeyWindow |
-                                    NSTrackingCursorUpdate |
-                                    NSTrackingInVisibleRect;
+    const NSTrackingAreaOptions options = NSTrackingMouseEnteredAndExited |
+                                          NSTrackingActiveInKeyWindow |
+                                          NSTrackingCursorUpdate |
+                                          NSTrackingInVisibleRect |
+                                          NSTrackingAssumeInside;
 
     trackingArea = [[NSTrackingArea alloc] initWithRect:[self bounds]
                                                 options:options
@@ -565,11 +555,6 @@ static int translateKey(unsigned int key)
 
     if (fabs(deltaX) > 0.0 || fabs(deltaY) > 0.0)
         _glfwInputScroll(window, deltaX, deltaY);
-}
-
-- (void)resetCursorRects
-{
-    [self addCursorRect:[self bounds] cursor:getModeCursor(window)];
 }
 
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
@@ -1211,13 +1196,8 @@ void _glfwPlatformDestroyCursor(_GLFWcursor* cursor)
 
 void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 {
-    if (window->cursorMode == GLFW_CURSOR_NORMAL && window->ns.cursorInside)
-    {
-        if (cursor)
-            [(NSCursor*) cursor->ns.object set];
-        else
-            [[NSCursor arrowCursor] set];
-    }
+    if (window->ns.cursorInside && window->cursorMode == GLFW_CURSOR_NORMAL)
+        [(NSCursor*) cursor->ns.object set];
 }
 
 void _glfwPlatformSetClipboardString(_GLFWwindow* window, const char* string)
